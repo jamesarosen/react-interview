@@ -2,14 +2,18 @@ import { Input, Box } from '@chakra-ui/react';
 import React, { useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { formatCell } from 'utils/formatCell';
 
+interface EditResult {
+  saved: boolean;
+  value: string;
+}
+
 interface Props {
   value: string;
   isSelected: boolean;
   isEditing: boolean;
-  onChange: (newValue: string) => void;
   onClick: () => void;
   onEditStart: () => void;
-  onEditEnd: () => void;
+  onEditEnd: (result: EditResult) => void;
   onNavigate: (direction: 'left' | 'right') => void;
 }
 
@@ -17,7 +21,6 @@ const Cell: React.FC<Props> = ({
   value,
   isSelected,
   isEditing,
-  onChange,
   onClick,
   onEditStart,
   onEditEnd,
@@ -26,11 +29,12 @@ const Cell: React.FC<Props> = ({
   const [editValue, setEditValue] = useState(value);
   const formattedValue = useMemo(() => formatCell(value), [value]);
   const inputRef = useRef<HTMLInputElement>(null);
-  const shouldSaveOnBlurRef = useRef(true);
+  const handledByKeyboardRef = useRef(false);
 
   useEffect(() => {
     if (!isEditing) {
       setEditValue(value);
+      handledByKeyboardRef.current = false;
     }
   }, [value, isEditing]);
 
@@ -47,12 +51,11 @@ const Cell: React.FC<Props> = ({
   }, [value, onEditStart]);
 
   const handleBlur = useCallback(() => {
-    if (shouldSaveOnBlurRef.current) {
-      onChange(editValue);
+    // Only handle blur from click-away; keyboard cases handled in handleKeyDown
+    if (!handledByKeyboardRef.current) {
+      onEditEnd({ saved: true, value: editValue });
     }
-    shouldSaveOnBlurRef.current = true; // reset for next edit
-    onEditEnd();
-  }, [editValue, onChange, onEditEnd]);
+  }, [editValue, onEditEnd]);
 
   const handleChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>((ev) => {
     setEditValue(ev.target.value);
@@ -60,21 +63,21 @@ const Cell: React.FC<Props> = ({
 
   const handleKeyDown = useCallback<React.KeyboardEventHandler<HTMLInputElement>>((ev) => {
     if (ev.key === 'Escape') {
-      // Revert to original value, don't save
-      shouldSaveOnBlurRef.current = false;
-      setEditValue(value);
+      handledByKeyboardRef.current = true;
+      onEditEnd({ saved: false, value });
       inputRef.current?.blur();
     } else if (ev.key === 'Enter') {
-      // Save and blur (shouldSaveOnBlurRef is true by default)
+      handledByKeyboardRef.current = true;
+      onEditEnd({ saved: true, value: editValue });
       inputRef.current?.blur();
     } else if (ev.key === 'Tab') {
-      // Save, blur, then navigate
       ev.preventDefault();
-      const direction = ev.shiftKey ? 'left' : 'right';
+      handledByKeyboardRef.current = true;
+      onEditEnd({ saved: true, value: editValue });
       inputRef.current?.blur();
-      onNavigate(direction);
+      onNavigate(ev.shiftKey ? 'left' : 'right');
     }
-  }, [value, onNavigate]);
+  }, [value, editValue, onEditEnd, onNavigate]);
 
   const displayValue = isEditing ? editValue : formattedValue;
 

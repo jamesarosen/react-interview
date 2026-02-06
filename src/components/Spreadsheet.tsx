@@ -43,26 +43,28 @@ const Spreadsheet: React.FC = () => {
     setEditingCell({ row, col });
   }, []);
 
-  const handleEditEnd = useCallback(() => {
-    setEditingCell(null);
-  }, []);
+  const handleEditEnd = useCallback(
+    (row: number, col: number, result: { saved: boolean; value: string }) => {
+      if (result.saved) {
+        setSpreadsheetState((prev) => {
+          const newRow = [
+            ...prev[row].slice(0, col),
+            result.value,
+            ...prev[row].slice(col + 1),
+          ];
+          return [...prev.slice(0, row), newRow, ...prev.slice(row + 1)];
+        });
+      }
+      setEditingCell(null);
+    },
+    [],
+  );
 
   const handleNavigate = useCallback((row: number, col: number, direction: Direction) => {
     const current = { row, col };
     const bounds = { rows: NUM_ROWS, cols: NUM_COLUMNS };
     const next = computeNextPosition(current, direction, bounds);
     setSelectedCell(next);
-  }, []);
-
-  const handleCellChange = useCallback((rowIdx: number, columnIdx: number, newValue: string) => {
-    setSpreadsheetState((prev) => {
-      const newRow = [
-        ...prev[rowIdx].slice(0, columnIdx),
-        newValue,
-        ...prev[rowIdx].slice(columnIdx + 1),
-      ];
-      return [...prev.slice(0, rowIdx), newRow, ...prev.slice(rowIdx + 1)];
-    });
   }, []);
 
   return (
@@ -85,10 +87,9 @@ const Spreadsheet: React.FC = () => {
                 value={cellValue}
                 isSelected={selectedCell?.row === rowIdx && selectedCell?.col === columnIdx}
                 isEditing={editingCell?.row === rowIdx && editingCell?.col === columnIdx}
-                onChange={(newValue: string) => handleCellChange(rowIdx, columnIdx, newValue)}
                 onClick={() => handleCellClick(rowIdx, columnIdx)}
                 onEditStart={() => handleEditStart(rowIdx, columnIdx)}
-                onEditEnd={handleEditEnd}
+                onEditEnd={(result) => handleEditEnd(rowIdx, columnIdx, result)}
                 onNavigate={(direction) => handleNavigate(rowIdx, columnIdx, direction)}
               />
             ))}
