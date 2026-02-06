@@ -72,6 +72,7 @@ const Cell: React.FC<Props> = ({
       inputRef.current?.blur();
     } else if (ev.key === 'Tab') {
       ev.preventDefault();
+      ev.nativeEvent.stopImmediatePropagation(); // Prevent useKeyboardNavigation from also handling
       handledByKeyboardRef.current = true;
       onEditEnd({ saved: true, value: editValue });
       inputRef.current?.blur();
