@@ -5,7 +5,7 @@ import React, { useState, useCallback } from 'react';
 import Cell from 'components/Cell';
 import LabelCell from 'components/LabelCell';
 import { useKeyboardNavigation } from 'hooks/useKeyboardNavigation';
-import { Position } from 'utils/navigationUtils';
+import { Position, Direction, computeNextPosition } from 'utils/navigationUtils';
 import { getColumnLabel } from 'utils/spreadsheetUtils';
 
 const NUM_ROWS = 10;
@@ -47,6 +47,13 @@ const Spreadsheet: React.FC = () => {
     setEditingCell(null);
   }, []);
 
+  const handleNavigate = useCallback((row: number, col: number, direction: Direction) => {
+    const current = { row, col };
+    const bounds = { rows: NUM_ROWS, cols: NUM_COLUMNS };
+    const next = computeNextPosition(current, direction, bounds);
+    setSelectedCell(next);
+  }, []);
+
   const handleCellChange = useCallback((rowIdx: number, columnIdx: number, newValue: string) => {
     setSpreadsheetState((prev) => {
       const newRow = [
@@ -82,6 +89,7 @@ const Spreadsheet: React.FC = () => {
                 onClick={() => handleCellClick(rowIdx, columnIdx)}
                 onEditStart={() => handleEditStart(rowIdx, columnIdx)}
                 onEditEnd={handleEditEnd}
+                onNavigate={(direction) => handleNavigate(rowIdx, columnIdx, direction)}
               />
             ))}
           </Flex>

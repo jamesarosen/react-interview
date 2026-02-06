@@ -10,6 +10,7 @@ interface Props {
   onClick: () => void;
   onEditStart: () => void;
   onEditEnd: () => void;
+  onNavigate: (direction: 'left' | 'right') => void;
 }
 
 const Cell: React.FC<Props> = ({
@@ -20,10 +21,12 @@ const Cell: React.FC<Props> = ({
   onClick,
   onEditStart,
   onEditEnd,
+  onNavigate,
 }) => {
   const [editValue, setEditValue] = useState(value);
   const formattedValue = useMemo(() => formatCell(value), [value]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const shouldSaveOnBlurRef = useRef(true);
 
   useEffect(() => {
     if (!isEditing) {
@@ -44,8 +47,11 @@ const Cell: React.FC<Props> = ({
   }, [value, onEditStart]);
 
   const handleBlur = useCallback(() => {
+    if (shouldSaveOnBlurRef.current) {
+      onChange(editValue);
+    }
+    shouldSaveOnBlurRef.current = true; // reset for next edit
     onEditEnd();
-    onChange(editValue);
   }, [editValue, onChange, onEditEnd]);
 
   const handleChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>((ev) => {
@@ -54,9 +60,21 @@ const Cell: React.FC<Props> = ({
 
   const handleKeyDown = useCallback<React.KeyboardEventHandler<HTMLInputElement>>((ev) => {
     if (ev.key === 'Escape') {
+      // Revert to original value, don't save
+      shouldSaveOnBlurRef.current = false;
+      setEditValue(value);
       inputRef.current?.blur();
+    } else if (ev.key === 'Enter') {
+      // Save and blur (shouldSaveOnBlurRef is true by default)
+      inputRef.current?.blur();
+    } else if (ev.key === 'Tab') {
+      // Save, blur, then navigate
+      ev.preventDefault();
+      const direction = ev.shiftKey ? 'left' : 'right';
+      inputRef.current?.blur();
+      onNavigate(direction);
     }
-  }, []);
+  }, [value, onNavigate]);
 
   const displayValue = isEditing ? editValue : formattedValue;
 
