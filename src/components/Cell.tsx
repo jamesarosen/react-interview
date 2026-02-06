@@ -15,8 +15,8 @@ const Cell: React.FC<Props> = ({ value, onChange }) => {
   );
 
   return (
-    <Box>
-      <Input value={value} borderRadius={0} width="full" onChange={onChangeHandler} />
+    <Box width="100px" height="40px">
+      <Input value={value} borderRadius={0} width="full" height="full" onChange={onChangeHandler} />
     </Box>
   );
 };

@@ -3,6 +3,8 @@ import _ from 'lodash';
 import React, { useState } from 'react';
 
 import Cell from 'components/Cell';
+import LabelCell from 'components/LabelCell';
+import { getColumnLabel } from 'utils/spreadsheetUtils';
 
 const NUM_ROWS = 10;
 const NUM_COLUMNS = 10;
@@ -14,9 +16,18 @@ const Spreadsheet: React.FC = () => {
 
   return (
     <Box width="full">
+      {/* Header row with column labels */}
+      <Flex>
+        <LabelCell label="" /> {/* Empty corner cell */}
+        {_.times(NUM_COLUMNS, (colIdx) => (
+          <LabelCell key={`col-${colIdx}`} label={getColumnLabel(colIdx)} />
+        ))}
+      </Flex>
+      {/* Data rows with row labels */}
       {spreadsheetState.map((row, rowIdx) => {
         return (
           <Flex key={String(rowIdx)}>
+            <LabelCell label={String(rowIdx + 1)} /> {/* Row number label */}
             {row.map((cellValue, columnIdx) => (
               <Cell
                 key={`${rowIdx}/${columnIdx}`}

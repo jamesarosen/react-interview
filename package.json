@@ -18,20 +18,24 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^20.14.7",
     "@types/react": "^18.0.33",
     "@typescript-eslint/eslint-plugin": "^7.13.1",
     "@typescript-eslint/parser": "^7.13.1",
+    "@vitest/ui": "^4.0.18",
     "eslint": "^8.37.0",
     "eslint-config-next": "^14.2.3",
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-import-resolver-webpack": "^0.13.8",
     "eslint-plugin-import": "^2.32.0",
+    "jsdom": "^28.0.0",
     "next": "^14.2.4",
     "prettier": "^3.3.2",
     "sass": "^1.77.6",
-    "typescript": "5.4.5"
+    "typescript": "5.4.5",
+    "vitest": "^4.0.18"
   },
   "browserslist": {
     "production": [
@@ -48,6 +52,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "yarn next lint",
-    "prettier": "prettier --write -c src pages"
+    "prettier": "prettier --write -c src pages",
+    "test": "vitest",
+    "test:ui": "vitest --ui"
   }
 }
